@@ -47,7 +47,7 @@ async function handleMessage(req, res) {
   }
   try {
     const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-pro',
+      model: process.env.GEMINI_MODEL || 'gemini-1.5-flash',
       systemInstruction: SYSTEM_PROMPT,
     });
     const result = await model.generateContent(message.trim());
