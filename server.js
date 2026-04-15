@@ -4,6 +4,13 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  if (req.method === 'OPTIONS') return res.sendStatus(204);
+  next();
+});
 
 const PORT = process.env.PORT || 3000;
 const AI_NAME = process.env.AI_NAME || 'Gemini Pro';
@@ -51,6 +58,8 @@ async function handleMessage(req, res) {
       sender: 'User',
       originalMessage: message,
       reply,
+      response: reply,
+      text: reply,
       timestamp: new Date().toISOString(),
     });
   } catch (err) {
@@ -59,6 +68,13 @@ async function handleMessage(req, res) {
   }
 }
 
+app.get('/api/chat', (req, res) => {
+  if (!extractMessage(req)) {
+    return res.json({ status: 'ok', endpoint: '/api/chat', ai: AI_NAME });
+  }
+  return handleMessage(req, res);
+});
+app.post('/api/chat', handleMessage);
 app.post('/api/jarvis/autoresponder', handleMessage);
 app.get('/api/jarvis/autoresponder', handleMessage);
 app.get('/health', (req, res) => res.json({ status: 'ok', ai: AI_NAME }));
